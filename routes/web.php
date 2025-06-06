@@ -15,3 +15,7 @@ $router->get('/', function () use ($router) {
     // return $router->app->version();
     echo "Hi everyone!";
 });
+
+$router->get('/db-test', function() {
+    return app('db')->select("SHOW TABLES");
+});
