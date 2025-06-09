@@ -26,13 +26,23 @@ $router->get('/version', function () use ($router) {
 
 Route::group([
 
-    'prefix' => 'api/v1'
+    'prefix' => 'api/v1',
 
 ], function ($router) {
     Route::post('login', 'AuthController@login');
-    Route::post('logout', 'AuthController@logout');
-    Route::post('refresh', 'AuthController@refresh');
-    Route::post('user-profile', 'AuthController@me');
     Route::post('register', 'AuthController@register');
+    Route::post('refresh', 'AuthController@refresh');
+
+});
+
+Route::group([
+
+    'prefix' => 'api/v1',
+    'middleware' => 'auth:api'
+
+], function ($router) {
+    Route::post('logout', 'AuthController@logout');
+    Route::post('user-profile', 'AuthController@me');
+    Route::post('test', 'AuthController@test');
 
 });

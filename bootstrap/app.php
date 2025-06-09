@@ -60,6 +60,7 @@ $app->singleton(
 $app->configure('app');
 $app->configure('database');
 $app->configure('auth');
+$app->configure('jwt');
 
 /*
 |--------------------------------------------------------------------------
@@ -78,6 +79,7 @@ $app->configure('auth');
 
 $app->routeMiddleware([
     'auth' => App\Http\Middleware\Authenticate::class,
+    'auth:api' => \Tymon\JWTAuth\Http\Middleware\Authenticate::class,
 ]);
 
 /*
