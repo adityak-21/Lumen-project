@@ -1,9 +1,11 @@
 <?php
 namespace App\Http\Controllers;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Mail;
 use App\Services\UserService;
 use Illuminate\Support\Facades\Auth;
 use App\Models\User;
+use Carbon\Carbon;
 
 class AuthController extends Controller
 {
@@ -30,21 +32,41 @@ class AuthController extends Controller
                 'password' => 'required|string|min:6|confirmed',
             ]);
 
-            $this->userService->createUser($request->only(['name', 'email', 'password']));
+            $user = $this->userService->createUser($request->only(['name', 'email', 'password']));
 
-            return response()->json(['message' => 'User registered successfully'], 201);
+            $confirmationUrl = url("/api/confirm/{$user->confirmation_token}");
+            $data = [
+                'name' => $user->name,
+                'confirmationUrl' => $confirmationUrl,
+            ];
+            Mail::send('emails.confirmation', $data, function($message) use ($user) {
+                $message->to($user->email, $user->name)
+                        ->subject('Confirm your email');
+                $message->from('no-reply@example.com', 'App Name');
+            });
+            return response(['message' => 'Registration successful. Check your email to confirm.'], 201);
         } catch (\Illuminate\Validation\ValidationException $e) {
-            return response()->json([
+            return response([
                 'success' => 'False',
                 'message' => 'Validation error. Please check the input fields.',
                 'errors' => $e->errors()], 400);
         } catch (\Exception $e) {
-            return response()->json([
+            return response([
                 'success' => 'False',
                 'message' => 'Server error.',
                 'error' => $e->getMessage()], 500);
         }
 
+    }
+
+    public function confirmEmail($token)
+    {
+        $user = User::where('confirmation_token', $token)->firstOrFail();
+        $user->email_verified_at = Carbon::now();
+        $user->confirmation_token = null;
+        $user->save();
+
+        return response(['message' => 'Email confirmed! You can now login.']);
     }
 
     public function test(Request $request)
@@ -53,13 +75,13 @@ class AuthController extends Controller
             $guard = app('auth')->getDefaultDriver();
             $driver = config("auth.guards.{$guard}.driver");
 
-            return response()->json([
+            return response([
                 'guard' => $guard,
                 'driver' => $driver,
                 'user' => app('auth')->user(),
             ]);
         } catch (\Exception $e) {
-            return response()->json([
+            return response([
                 'success' => 'False',
                 'message' => 'Server error.',
                 'error' => $e->getMessage()], 500);
@@ -78,12 +100,18 @@ class AuthController extends Controller
             $credentials = $request->only(['email', 'password']);
 
             if (! $token = Auth::attempt($credentials)) {
-                return response()->json(['error' => 'Invalid email or password'], 401);
+                return response(['error' => 'Invalid email or password'], 401);
+            }
+
+            $user = app('auth')->user();
+
+            if (is_null($user->email_verified_at)) {
+                return response(['error' => 'Please confirm your email before logging in.'], 403);
             }
 
             return $this->respondWithToken($token);
         } catch (\Exception $e) {
-            return response()->json([
+            return response([
                 'success' => 'False',
                 'message' => 'Server error.',
                 'error' => $e->getMessage()], 500);
@@ -98,10 +126,10 @@ class AuthController extends Controller
     {
         try{
             Auth::logout();
-            return response()->json(['message' => 'User logged out successfully'], 200);
+            return response(['message' => 'User logged out successfully'], 200);
         }
         catch (\Exception $e) {
-            return response()->json([
+            return response([
                 'success' => 'False',
                 'message' => 'Server error.',
                 'error' => $e->getMessage()], 500);
@@ -115,9 +143,9 @@ class AuthController extends Controller
     public function me()
     {
         if (!app('auth')->check()) {
-            return response()->json(['error' => 'Unauthenticated'], 401);
+            return response(['error' => 'Unauthenticated'], 401);
         }
-        return response()->json(app('auth')->user());
+        return response(app('auth')->user());
     }
     /**
      * Refresh the JWT token.
@@ -132,7 +160,7 @@ class AuthController extends Controller
             return $this->respondWithToken(app('auth')->refresh());
         }
         catch(\Exception $e) {
-            return response()->json([
+            return response([
                 'success' => 'False',
                 'message' => 'Error.',
                 'error' => 'Could not refresh token'], 500);
@@ -141,7 +169,7 @@ class AuthController extends Controller
 
     public function respondWithToken($token)
     {
-        return response()->json([
+        return response([
             'access_token' => $token,
             'token_type' => 'bearer',
             'expires_in' => Auth::factory()->getTTL() * 60,
