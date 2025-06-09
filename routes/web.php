@@ -17,5 +17,22 @@ $router->get('/', function () use ($router) {
 });
 
 $router->get('/db-test', function() {
-    return app('db')->select("SHOW TABLES");
+    return app('db')->select("SELECT 1 as Test");
+});
+
+$router->get('/version', function () use ($router) {
+    return $router->app->version();
+});
+
+Route::group([
+
+    'prefix' => 'api/v1'
+
+], function ($router) {
+    Route::post('login', 'AuthController@login');
+    Route::post('logout', 'AuthController@logout');
+    Route::post('refresh', 'AuthController@refresh');
+    Route::post('user-profile', 'AuthController@me');
+    Route::post('register', 'AuthController@register');
+
 });
