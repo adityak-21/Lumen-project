@@ -50,3 +50,16 @@ Route::group([
     Route::post('test', 'AuthController@test');
 
 });
+
+Route::group([
+    'prefix' => 'api/roles'
+
+], function ($router) {
+    Route::get('/', 'RoleController@index');
+    Route::post('create', 'RoleController@create');
+    Route::get('{id}', 'RoleController@show');
+    Route::delete('{id}', 'RoleController@destroy');
+});
+
+$router->post('api/users/{userId}/roles', 'UserRoleController@assignRoles');
+$router->delete('api/users/{userId}/roles/{roleId}', 'UserRoleController@removeRole');
