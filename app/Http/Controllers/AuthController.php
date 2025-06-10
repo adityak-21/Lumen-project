@@ -45,7 +45,7 @@ class AuthController extends Controller
                 $message->to($user->email, $user->name)
                         ->subject('Confirm your email');
                 $message->from('no-reply@example.com', 'App Name');
-            });
+            }); 
             return response(['message' => 'Registration successful. Check your email to confirm.'], 201);
         } catch (\Illuminate\Validation\ValidationException $e) {
             return response([
@@ -66,8 +66,8 @@ class AuthController extends Controller
         $user = User::where('confirmation_token', $token)->firstOrFail();
         $user->email_verified_at = Carbon::now();
         $user->confirmation_token = null;
+        $user->created_by = app('auth')->user()->id ?? null;
         $user->save();
-
         return response(['message' => 'Email confirmed! You can now login.']);
     }
 
@@ -176,6 +176,10 @@ class AuthController extends Controller
                 return response(['error' => 'Please confirm your email before logging in.'], 403);
             }
 
+            if(!is_null($user->deleted_at)) {
+                return response(['error' => 'Your account has been deleted.'], 403);
+            }
+
             return $this->respondWithToken($token);
         } catch (\Exception $e) {
             return response([
@@ -242,5 +246,31 @@ class AuthController extends Controller
             'expires_in' => Auth::factory()->getTTL() * 60,
             'user' => Auth::user()
         ]);
+    }
+
+    public function softDeleteUser($id)
+    {
+        try {
+            $user = app('auth')->user();
+            $userToDelete = User::findOrFail($id);
+            if(!($user->roles->contains('role', 'admin')))
+            {
+                return response(['error' => 'You do not have permission to delete this user'], 403);
+            }
+            if ($user->id == $id) {
+                return response()->json(['error' => 'You cannot delete yourself'], 400);
+            }
+            $userToDelete->deleted_by = $user->id;
+            $userToDelete->save();
+            $userToDelete->delete();
+            return response(['message' => 'User deleted successfully'], 200);
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            return response(['error' => 'User not found'], 404);
+        } catch (\Exception $e) {
+            return response([
+                'success' => 'False',
+                'message' => 'Server error.',
+                'error' => $e->getMessage()], 500);
+        }
     }
 }

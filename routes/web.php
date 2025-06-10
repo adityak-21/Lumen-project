@@ -48,6 +48,7 @@ Route::group([
     Route::post('logout', 'AuthController@logout');
     Route::post('user-profile', 'AuthController@me');
     Route::post('test', 'AuthController@test');
+    Route::post('softdelete/{id}', 'AuthController@softDeleteUser');
 
 });
 
