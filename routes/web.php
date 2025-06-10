@@ -34,6 +34,8 @@ Route::group([
     Route::post('login', 'AuthController@login');
     Route::post('register', 'AuthController@register');
     Route::post('refresh', 'AuthController@refresh');
+    Route::post('resetpwd/{token}', 'AuthController@resetPassword');
+    Route::post('forgotpwd', 'AuthController@forgotPassword');
 
 });
 

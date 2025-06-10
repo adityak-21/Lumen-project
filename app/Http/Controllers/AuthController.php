@@ -2,6 +2,8 @@
 namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Hash;
 use App\Services\UserService;
 use Illuminate\Support\Facades\Auth;
 use App\Models\User;
@@ -67,6 +69,71 @@ class AuthController extends Controller
         $user->save();
 
         return response(['message' => 'Email confirmed! You can now login.']);
+    }
+
+    public function forgotPassword(Request $request)
+    {
+        try {
+            $this->validate($request, [
+                'email' => 'required|string|email|max:255',
+            ]);
+
+            $user = User::where('email', $request->email)->first();
+            if(!$user) {
+                return response(['error' => 'User not found'], 404);
+
+            }
+            $resetToken = Str::random(32);
+            $user->confirmation_token = $resetToken;
+            $user->save();
+            $resetUrl = url("/api/resetpwd/{$resetToken}");
+            $data = [
+                'name' => $user->name,
+                'resetUrl' => $resetUrl,
+            ];
+            Mail::send('emails.ResetPassword', $data, function($message) use ($user) {
+                $message->to($user->email, $user->name)
+                        ->subject('Reset your password');
+                $message->from('no-reply@example.com', 'App Name');
+            });
+            return response(['message' => 'Password reset link sent to your email.'], 200);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response([
+                'success' => 'False',
+                'message' => 'Validation error. Please check the input fields.',
+                'errors' => $e->errors()], 400);
+        } catch (\Exception $e) {
+            return response([
+                'success' => 'False',
+                'message' => 'Server error.',
+                'error' => $e->getMessage()], 500);
+        }
+    }
+
+    public function resetPassword(Request $request, $token)
+    {
+        try {
+            $this->validate($request, [
+                'password' => 'required|string|min:6|confirmed',
+            ]);
+
+            $user = User::where('confirmation_token', $token)->firstOrFail();
+            $user->password = Hash::make($request->password);
+            $user->confirmation_token = null;
+            $user->save();
+
+            return response(['message' => 'Password has been reset successfully.'], 200);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response([
+                'success' => 'False',
+                'message' => 'Validation error. Please check the input fields.',
+                'errors' => $e->errors()], 400);
+        } catch (\Exception $e) {
+            return response([
+                'success' => 'False',
+                'message' => 'Server error.',
+                'error' => $e->getMessage()], 500);
+        }
     }
 
     public function test(Request $request)
