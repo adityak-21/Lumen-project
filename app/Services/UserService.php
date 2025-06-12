@@ -6,6 +6,7 @@ use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 
 class UserService
@@ -25,17 +26,82 @@ class UserService
         $user = User::where('email', $credentials['email'])->first();
             
         if (! $user || ! Hash::check($credentials['password'], $user->password)) {
-            return response(['error' => 'Invalid email or password'], 401);
+            return ['error' => 'Invalid email or password', 'token' => null];
         }
         if (is_null($user->email_verified_at)) {
-            return response(['error' => 'Please confirm your email before logging in.'], 403);
+            return ['error' => 'Please confirm your email before logging in.', 'token' => null];
         }
         if (! $token = Auth::attempt($credentials)) {
-            return response(['error' => 'Invalid email/password'], 401);
+            return ['error' => 'Invalid email/password', 'token' => null];
         }
 
-        return $token;
+        return ['error' => null, 'token' => $token];
 
+    }
+
+    public function performSoftDeleteUser($authUser, $id)
+    {
+        $result = ['id' => $id, 'status' => 'success', 'message' => ''];
+        try {
+            $userToDelete = User::findOrFail($id);
+
+            if (!($authUser->roles->contains('role', 'admin'))) {
+                $result['status'] = 'failed';
+                $result['message'] = 'No permission';
+                return $result;
+            }
+            if ($authUser->id == $id) {
+                $result['status'] = 'failed';
+                $result['message'] = 'Cannot delete yourself';
+                return $result;
+            }
+            $userToDelete->deleted_by = $authUser->id;
+            $userToDelete->save();
+            $userToDelete->delete();
+            $result['message'] = 'User deleted';
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            $result['status'] = 'failed';
+            $result['message'] = 'User not found';
+        } catch (\Exception $e) {
+            $result['status'] = 'failed';
+            $result['message'] = $e->getMessage();
+        }
+        return $result;
+    }
+
+    public function performBulkDeleteUsers($authUser, array $userIds)
+    {
+        try{
+            DB::beginTransaction();
+            $result = [];
+            foreach ($userIds as $id) {
+                $deleteResult = $this->performSoftDeleteUser($authUser, $id);
+                if ($deleteResult['status'] !== 'success') {
+                    DB::rollBack();
+                    $result = ['status' => 'failed', 'message' => $deleteResult['message'], 'error' => $deleteResult['message']];
+                    return $result;
+                }
+            }
+            DB::commit();
+            return $result = ['status' => 'success', 'message' => $deleteResult['message'], 'error' => null];
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            DB::rollBack();
+            $result=[];
+            $result = [
+                'status' => 'failed', 
+                'message' => 'Validation error. Please check the input fields.', 
+                'errors' => $e->errors()
+            ];
+            return $result;
+        } catch (\Exception $e) {
+            DB::rollBack();
+            $result = [];
+            return $result = [
+                'status' => false,
+                'message' => 'Server error.',
+                'error' => $e->getMessage(),
+            ];
+        }
     }
 
     public function listUsers(array $filters = [], $pageNumber = 1, $perPage = 2)

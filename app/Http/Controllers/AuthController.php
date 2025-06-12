@@ -176,7 +176,10 @@ class AuthController extends Controller
             ]);
             $credentials = $request->only(['email', 'password']);
 
-            $token = $this->userService->verifyUser($credentials);
+            $verification = $this->userService->verifyUser($credentials);
+
+            if(!$verification['token']) return response($verification['error'], 401);
+            $token = $verification['token'];
 
             $user = app('auth')->user();
             $loginTime = Carbon::now()->toDateTimeString();
@@ -251,93 +254,4 @@ class AuthController extends Controller
             'user' => Auth::user()
         ]);
     }
-
-    public function softDeleteUser($id)
-    {
-        try {
-            $user = app('auth')->user();
-            $userToDelete = User::findOrFail($id);
-            if(!($user->roles->contains('role', 'admin')))
-            {
-                return response(['error' => 'You do not have permission to delete this user'], 403);
-            }
-            if ($user->id == $id) {
-                return response()->json(['error' => 'You cannot delete yourself'], 400);
-            }
-            $userToDelete->deleted_by = $user->id;
-            $userToDelete->save();
-            $userToDelete->delete();
-            return response(['message' => 'User deleted successfully'], 200);
-        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
-            return response(['error' => 'User not found'], 404);
-        } catch (\Exception $e) {
-            return response([
-                'success' => 'False',
-                'message' => 'Server error.',
-                'error' => $e->getMessage()], 500);
-        }
-    }
-
-    public function listUser(Request $request)
-    {
-        try {
-            $this->validate($request, [
-                'name' => 'string|max:255|nullable',
-                'email' => 'string|email|max:255|nullable',
-                'role' => 'string|max:255|nullable',
-                'pagenumber' => 'integer|min:1|nullable',
-                'perpage' => 'integer|min:1|nullable',
-            ]);
-
-            $filters = [];
-            $filters['name'] = $request->input('name');
-            $filters['email'] = $request->input('email');
-            $filters['role'] = $request->input('role');
-            $pageNumber = $request->input('pagenumber', 1);
-            $perPage = $request->input('perpage', 2);
-
-            $users = $this->userService->listUsers($filters, $pageNumber, $perPage);
-            return response($users);
-
-        } catch (\Exception $e) {
-            return response([
-                'success' => 'False',
-                'message' => 'Server error.',
-                'error' => $e->getMessage()], 500);
-        }
-    }
-
-    public function listUserActivity(Request $request)
-    {
-        try{
-            $this->validate($request, [
-                'name' => 'string|max:255|nullable',
-                'from' => 'date|nullable',
-                'to' => 'date|nullable',
-                'pagenumber' => 'integer|min:1|nullable',
-                'perpage' => 'integer|min:1|nullable',
-            ]);
-
-            $filters = [];
-            $filters['name'] = $request->input('name');
-            $filters['from'] = $request->input('from');
-            $filters['to'] = $request->input('to');
-            $pageNumber = $request->input('pagenumber', 1);
-            $perPage = $request->input('perpage', 2);
-
-            $users = $this->userActivityService->listUserActivities($filters, $pageNumber, $perPage);
-            return response($users);
-        } catch (\Illuminate\Validation\ValidationException $e) {
-            return response([
-                'success' => 'False',
-                'message' => 'Validation error. Please check the input fields.',
-                'errors' => $e->errors()], 400);
-        } catch (\Exception $e) {
-            return response([
-                'success' => 'False',
-                'message' => 'Server error.',
-                'error' => $e->getMessage()], 500);
-        }
-    }
-
 }
