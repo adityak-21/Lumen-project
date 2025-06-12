@@ -5,8 +5,11 @@ use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Hash;
 use App\Services\UserService;
+use App\Services\UserActivityService;
+use App\Services\MailService;
 use Illuminate\Support\Facades\Auth;
 use App\Models\User;
+use UserActivityController;
 use Carbon\Carbon;
 
 class AuthController extends Controller
@@ -19,10 +22,16 @@ class AuthController extends Controller
      */
 
     protected $userService;
+    protected $userActivityService;
+    protected $mailService;
 
-    public function __construct(UserService $userService)
+    public function __construct(UserService $userService,
+                                UserActivityService $userActivityService,
+                                MailService $mailService)
     {
         $this->userService = $userService;
+        $this->userActivityService = $userActivityService;
+        $this->mailService = $mailService;
     }
 
     public function register(Request $request)
@@ -41,11 +50,10 @@ class AuthController extends Controller
                 'name' => $user->name,
                 'confirmationUrl' => $confirmationUrl,
             ];
-            Mail::send('emails.confirmation', $data, function($message) use ($user) {
-                $message->to($user->email, $user->name)
-                        ->subject('Confirm your email');
-                $message->from('no-reply@example.com', 'App Name');
-            }); 
+
+            $this->mailService->sendMail('emails.confirmation', $data, $user->email, $user->name,
+                                        'Confirm your email', 'no-reply@example.com', 'App Name');
+
             return response(['message' => 'Registration successful. Check your email to confirm.'], 201);
         } catch (\Illuminate\Validation\ValidationException $e) {
             return response([
@@ -91,11 +99,9 @@ class AuthController extends Controller
                 'name' => $user->name,
                 'resetUrl' => $resetUrl,
             ];
-            Mail::send('emails.ResetPassword', $data, function($message) use ($user) {
-                $message->to($user->email, $user->name)
-                        ->subject('Reset your password');
-                $message->from('no-reply@example.com', 'App Name');
-            });
+            $this->mailService->sendMail('emails.ResetPassword', $data, $user->email, $user->name,
+                                        'Reset your password', 'no-reply@example.com', 'App Name');
+
             return response(['message' => 'Password reset link sent to your email.'], 200);
         } catch (\Illuminate\Validation\ValidationException $e) {
             return response([
@@ -164,22 +170,17 @@ class AuthController extends Controller
     public function login(Request $request)
     {
         try{
+            $this->validate($request, [
+                'email' => 'required|string|email|max:255',
+                'password' => 'required|string|min:6',
+            ]);
             $credentials = $request->only(['email', 'password']);
 
-            if (! $token = Auth::attempt($credentials)) {
-                return response(['error' => 'Invalid email or password'], 401);
-            }
+            $token = $this->userService->verifyUser($credentials);
 
             $user = app('auth')->user();
-
-            if (is_null($user->email_verified_at)) {
-                return response(['error' => 'Please confirm your email before logging in.'], 403);
-            }
-
-            if(!is_null($user->deleted_at)) {
-                return response(['error' => 'Your account has been deleted.'], 403);
-            }
-
+            $loginTime = Carbon::now()->toDateTimeString();
+            $this->userActivityService->loginActivity($user->id, $loginTime);
             return $this->respondWithToken($token);
         } catch (\Exception $e) {
             return response([
@@ -196,7 +197,10 @@ class AuthController extends Controller
     public function logout()
     {
         try{
+            $user = app('auth')->user();
             Auth::logout();
+            $logoutTime = Carbon::now()->toDateTimeString();
+            $this->userActivityService->logoutActivity($user->id, $logoutTime);
             return response(['message' => 'User logged out successfully'], 200);
         }
         catch (\Exception $e) {
@@ -273,4 +277,67 @@ class AuthController extends Controller
                 'error' => $e->getMessage()], 500);
         }
     }
+
+    public function listUser(Request $request)
+    {
+        try {
+            $this->validate($request, [
+                'name' => 'string|max:255|nullable',
+                'email' => 'string|email|max:255|nullable',
+                'role' => 'string|max:255|nullable',
+                'pagenumber' => 'integer|min:1|nullable',
+                'perpage' => 'integer|min:1|nullable',
+            ]);
+
+            $filters = [];
+            $filters['name'] = $request->input('name');
+            $filters['email'] = $request->input('email');
+            $filters['role'] = $request->input('role');
+            $pageNumber = $request->input('pagenumber', 1);
+            $perPage = $request->input('perpage', 2);
+
+            $users = $this->userService->listUsers($filters, $pageNumber, $perPage);
+            return response($users);
+
+        } catch (\Exception $e) {
+            return response([
+                'success' => 'False',
+                'message' => 'Server error.',
+                'error' => $e->getMessage()], 500);
+        }
+    }
+
+    public function listUserActivity(Request $request)
+    {
+        try{
+            $this->validate($request, [
+                'name' => 'string|max:255|nullable',
+                'from' => 'date|nullable',
+                'to' => 'date|nullable',
+                'pagenumber' => 'integer|min:1|nullable',
+                'perpage' => 'integer|min:1|nullable',
+            ]);
+
+            $filters = [];
+            $filters['name'] = $request->input('name');
+            $filters['from'] = $request->input('from');
+            $filters['to'] = $request->input('to');
+            $pageNumber = $request->input('pagenumber', 1);
+            $perPage = $request->input('perpage', 2);
+
+            $users = $this->userActivityService->listUserActivities($filters, $pageNumber, $perPage);
+            return response($users);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response([
+                'success' => 'False',
+                'message' => 'Validation error. Please check the input fields.',
+                'errors' => $e->errors()], 400);
+        } catch (\Exception $e) {
+            return response([
+                'success' => 'False',
+                'message' => 'Server error.',
+                'error' => $e->getMessage()], 500);
+        }
+    }
+
 }
