@@ -6,7 +6,6 @@ use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Hash;
 use App\Services\UserService;
 use App\Services\UserActivityService;
-use App\Services\MailService;
 use Illuminate\Support\Facades\Auth;
 use App\Models\User;
 use UserActivityController;
@@ -17,13 +16,11 @@ class UserController extends Controller
 {
     protected $userService;
     protected $userActivityService;
-    protected $mailService;
 
-    public function __construct(UserService $userService, UserActivityService $userActivityService, MailService $mailService)
+    public function __construct(UserService $userService, UserActivityService $userActivityService)
     {
         $this->userService = $userService;
         $this->userActivityService = $userActivityService;
-        $this->mailService = $mailService;
     }
 
     public function updateName(Request $request, $userId = null)
@@ -78,7 +75,7 @@ class UserController extends Controller
             ]);
             $user = app('auth')->user();
             $userIds = $request->input('user_ids');
-            $result = $this->userService->performBulkDeleteUsers($user, $userIds);
+            $result = $this->userService->performBulkDeleteUsers($userIds, $user);
             if(!$result['error']) return response($result, 200);
             return response($result, 400);
         } catch (\Illuminate\Validation\ValidationException $e) {

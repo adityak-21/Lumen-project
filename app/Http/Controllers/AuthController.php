@@ -7,10 +7,12 @@ use Illuminate\Support\Facades\Hash;
 use App\Services\UserService;
 use App\Services\UserActivityService;
 use App\Services\MailService;
+use App\Services\RoleService;
 use Illuminate\Support\Facades\Auth;
 use App\Models\User;
 use UserActivityController;
 use Carbon\Carbon;
+use App\Events\UserRegistered; 
 
 class AuthController extends Controller
 {
@@ -44,15 +46,7 @@ class AuthController extends Controller
             ]);
 
             $user = $this->userService->createUser($request->only(['name', 'email', 'password']));
-
-            $confirmationUrl = url("/api/confirm/{$user->confirmation_token}");
-            $data = [
-                'name' => $user->name,
-                'confirmationUrl' => $confirmationUrl,
-            ];
-
-            $this->mailService->sendMail('emails.confirmation', $data, $user->email, $user->name,
-                                        'Confirm your email', 'no-reply@example.com', 'App Name');
+            event(new UserRegistered($user));
 
             return response(['message' => 'Registration successful. Check your email to confirm.'], 201);
         } catch (\Illuminate\Validation\ValidationException $e) {
@@ -72,10 +66,12 @@ class AuthController extends Controller
     public function confirmEmail($token)
     {
         $user = User::where('confirmation_token', $token)->firstOrFail();
+        $roleService = app()->make(RoleService::class);
         $user->email_verified_at = Carbon::now();
         $user->confirmation_token = null;
         $user->created_by = app('auth')->user()->id ?? null;
         $user->save();
+        $roleService->assignUserRoles($user->id, ['1']);
         return response(['message' => 'Email confirmed! You can now login.']);
     }
 
@@ -99,6 +95,7 @@ class AuthController extends Controller
                 'name' => $user->name,
                 'resetUrl' => $resetUrl,
             ];
+            
             $this->mailService->sendMail('emails.ResetPassword', $data, $user->email, $user->name,
                                         'Reset your password', 'no-reply@example.com', 'App Name');
 

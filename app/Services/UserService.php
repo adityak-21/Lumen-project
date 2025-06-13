@@ -69,7 +69,7 @@ class UserService
         return $result;
     }
 
-    public function performBulkDeleteUsers($authUser, array $userIds)
+    public function performBulkDeleteUsers(array $userIds, $authUser)
     {
         try{
             DB::beginTransaction();
@@ -138,19 +138,20 @@ class UserService
 
         $query->limit($perPage)->offset(($pageNumber-1) * $perPage);
         $users = $query->get();
-
+        $count = $users->count();
         $result = [];
+        $result['users'] = [];
 
         foreach ($users as $user) {
             if ($user->roles->isEmpty()) {
-                $result[] = [
+                $result['users'][] = [
                     'id'   => $user->id,
                     'name' => $user->name,
                     'role' => null,
                 ];
             } else {
                 foreach ($user->roles as $role) {
-                    $result[] = [
+                    $result['users'][] = [
                         'id'   => $user->id,
                         'name' => $user->name,
                         'role' => $role->role,
@@ -158,6 +159,7 @@ class UserService
                 }
             }
         }
+        $result['count'] = count($result['users']);
         return $result;
 
     }

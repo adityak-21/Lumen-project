@@ -1,6 +1,8 @@
 <?php
 
 namespace App\Providers;
+use App\Events\UserRegistered;
+use App\Listeners\SendRegisteredEmail;
 
 use Laravel\Lumen\Providers\EventServiceProvider as ServiceProvider;
 
@@ -12,8 +14,14 @@ class EventServiceProvider extends ServiceProvider
      * @var array
      */
     protected $listen = [
-        \App\Events\ExampleEvent::class => [
-            \App\Listeners\ExampleListener::class,
+        // \App\Events\ExampleEvent::class => [
+        //     \App\Listeners\ExampleListener::class,
+        // ],
+
+        UserRegistered::class => [
+            SendRegisteredEmail::class,
         ],
     ];
+
+    
 }
