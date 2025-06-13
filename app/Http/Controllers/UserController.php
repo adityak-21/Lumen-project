@@ -26,6 +26,38 @@ class UserController extends Controller
         $this->mailService = $mailService;
     }
 
+    public function updateName(Request $request, $userId = null)
+    {
+        try {
+            $this->validate($request, [
+                'name' => 'required|string|max:255',
+            ]);
+            $authuser = app('auth')->user();
+            if(!$userId) {
+                $userId = $authuser->id;
+            }
+            else {
+                if (!$authuser->roles->contains('role', 'admin')) {
+                    return response(['error' => 'No permission'], 403);
+                }
+            }
+            $result = [];
+            $result = $this->userService->updateUserName($userId, $request->input('name'));
+            if($result['status'] == 'success')
+                return response($result['message'], 200);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response([
+                'success' => 'False',
+                'message' => 'Validation error. Please check the input fields.',
+                'errors' => $e->errors()], 400);
+        } catch (\Exception $e) {
+            return response([
+                'success' => 'False',
+                'message' => 'Server error.',
+                'error' => $e->getMessage()], 500);
+        }
+    }
+
     public function softDeleteUser($id)
     {
         $user = app('auth')->user();

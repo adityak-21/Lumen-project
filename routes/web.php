@@ -52,6 +52,7 @@ Route::group([
     Route::post('test', 'AuthController@test');
     Route::post('softdelete/{id}', 'UserController@softDeleteUser');
     Route::post('bulkdelete', 'UserController@bulksoftDeleteUsers');
+    Route::post('update-name/{userId}', 'UserController@updateName');
 
 });
 

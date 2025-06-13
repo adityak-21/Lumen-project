@@ -104,6 +104,14 @@ class UserService
         }
     }
 
+    public function updateUserName($userId, $name)
+    {
+        $user = User::findOrFail($userId);
+        $user->name = $name;
+        $user->save();
+        return ['status' => 'success', 'message' => 'Name updated successfully.'];
+    }
+
     public function listUsers(array $filters = [], $pageNumber = 1, $perPage = 2)
     {
         $query = User::query();
