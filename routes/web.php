@@ -36,8 +36,6 @@ Route::group([
     Route::post('refresh', 'AuthController@refresh');
     Route::post('resetpwd/{token}', 'AuthController@resetPassword');
     Route::post('forgotpwd', 'AuthController@forgotPassword');
-    Route::post('listUsers', 'UserController@listUser');
-    Route::post('listActivities', 'UserController@listUserActivity');
 
 });
 
@@ -53,6 +51,10 @@ Route::group([
     Route::post('softdelete/{id}', 'UserController@softDeleteUser');
     Route::post('bulkdelete', 'UserController@bulksoftDeleteUsers');
     Route::post('update-name/{userId}', 'UserController@updateName');
+    Route::post('listUsers', 'UserController@listUser');
+    Route::post('listActivities', 'UserController@listUserActivity');
+    Route::post('validate', 'AuthController@isValidUser');
+    Route::post('isAdmin', 'AuthController@isAdmin');
 
 });
 

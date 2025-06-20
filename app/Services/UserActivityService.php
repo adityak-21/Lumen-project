@@ -23,6 +23,7 @@ class UserActivityService
     {
         $activity = ActivityLog::where('user_id', $userId)
             ->whereNull('logout_time')
+            ->orderBy('login_time', 'desc')
             ->first();
 
         if ($activity) {
@@ -38,7 +39,7 @@ class UserActivityService
     {
         $query = ActivityLog::query();
 
-        if (isset($filters['name'])) {
+        if (!empty($filters['name'])) {
             $query->whereHas('users', function ($q) use ($filters) {
                 $q->where('name', 'like', $filters['name']);
             });
@@ -49,11 +50,11 @@ class UserActivityService
             $query->with('users');
         }
 
-        if (isset($filters['from'])) {
+        if (!empty($filters['from'])) {
             $query->where('login_time', '>=', $filters['from']);
         }
 
-        if (isset($filters['to'])) {
+        if (!empty($filters['to'])) {
             $query->where('logout_time', '<=', $filters['to']);
         }
 

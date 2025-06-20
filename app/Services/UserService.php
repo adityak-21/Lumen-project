@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Carbon\Carbon;
 
 
 class UserService
@@ -116,15 +117,15 @@ class UserService
     {
         $query = User::query();
 
-        if (isset($filters['name'])) {
+        if (!empty($filters['name'])) {
             $query->where('name', 'like', $filters['name'] . '%');
         }
 
-        if (isset($filters['email'])) {
+        if (!empty($filters['email'])) {
             $query->where('email', $filters['email']);
         }
 
-        if (isset($filters['role'])) {
+        if (!empty($filters['role'])) {
             $query->whereHas('roles', function ($q) use ($filters) {
                 $q->where('role', 'like', $filters['role'] . '%');
             });
@@ -135,6 +136,8 @@ class UserService
         else $query->with('roles');
 
         $query->orderBy('name');
+
+        $totalCount = $query->count();
 
         $query->limit($perPage)->offset(($pageNumber-1) * $perPage);
         $users = $query->get();
@@ -147,19 +150,27 @@ class UserService
                 $result['users'][] = [
                     'id'   => $user->id,
                     'name' => $user->name,
+                    'email' => $user->email,
                     'role' => null,
+                    'created_by' => $user->created_by,
+                    'created_at' => Carbon::parse($user->created_at)->format('Y-m-d H:i:s'),
+                    'updated_at' => Carbon::parse($user->updated_at)->format('Y-m-d H:i:s'),
                 ];
             } else {
                 foreach ($user->roles as $role) {
                     $result['users'][] = [
                         'id'   => $user->id,
                         'name' => $user->name,
+                        'email' => $user->email,
                         'role' => $role->role,
+                        'created_by' => $user->created_by,
+                        'created_at' => Carbon::parse($user->created_at)->format('Y-m-d H:i:s'),
+                        'updated_at' => Carbon::parse($user->updated_at)->format('Y-m-d H:i:s'),
                     ];
                 }
             }
         }
-        $result['count'] = count($result['users']);
+        $result['count'] = $totalCount;
         return $result;
 
     }

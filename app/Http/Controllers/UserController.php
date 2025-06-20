@@ -108,7 +108,7 @@ class UserController extends Controller
             $filters['email'] = $request->input('email');
             $filters['role'] = $request->input('role');
             $pageNumber = $request->input('pagenumber', 1);
-            $perPage = $request->input('perpage', 2);
+            $perPage = $request->input('perpage', 10);
 
             $users = $this->userService->listUsers($filters, $pageNumber, $perPage);
             return response($users);

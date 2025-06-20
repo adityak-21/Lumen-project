@@ -13,6 +13,7 @@ use App\Models\User;
 use UserActivityController;
 use Carbon\Carbon;
 use App\Events\UserRegistered; 
+use App\Models\Role;
 
 class AuthController extends Controller
 {
@@ -227,6 +228,18 @@ class AuthController extends Controller
      *
      * @return \Illuminate\Http\JsonResponse
      */
+
+    public function isAdmin()
+    {
+        $roleId = 2;
+        $role = Role::findOrFail($roleId);
+        $user = app('auth')->user();
+        if($user->roles->contains($roleId))
+        {
+            return response([true], 200);
+        }
+        return response([false], 500);
+    }
     
     public function refresh()
     {
@@ -239,6 +252,15 @@ class AuthController extends Controller
                 'success' => 'False',
                 'message' => 'Error.',
                 'error' => 'Could not refresh token'], 500);
+        }
+    }
+
+    public function isValidUser()
+    {
+        if (app('auth')->check()) {
+            return response(['valid' => true, 'user' => app('auth')->user()]);
+        } else {
+            return response(['valid' => false], 401);
         }
     }
 
