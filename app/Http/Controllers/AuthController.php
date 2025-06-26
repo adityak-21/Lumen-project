@@ -49,6 +49,9 @@ class AuthController extends Controller
             $user = $this->userService->createUser($request->only(['name', 'email', 'password']));
             event(new UserRegistered($user));
 
+            $user->created_by = app('auth')->user()->id ?? null;
+            $user->save();
+
             return response(['message' => 'Registration successful. Check your email to confirm.'], 201);
         } catch (\Illuminate\Validation\ValidationException $e) {
             return response([
@@ -70,7 +73,7 @@ class AuthController extends Controller
         $roleService = app()->make(RoleService::class);
         $user->email_verified_at = Carbon::now();
         $user->confirmation_token = null;
-        $user->created_by = app('auth')->user()->id ?? null;
+        // $user->created_by = app('auth')->user()->id ?? null;
         $user->save();
         $roleService->assignUserRoles($user->id, ['1']);
         return response(['message' => 'Email confirmed! You can now login.']);

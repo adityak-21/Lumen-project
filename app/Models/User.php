@@ -50,4 +50,12 @@ class User extends Model implements AuthenticatableContract, AuthorizableContrac
     {
         return $this->hasMany(ActivityLog::class, 'user_id');
     }
+    public function assigned_tasks()
+    {
+        return $this->hasMany(Task::class, 'assignee_id');
+    }
+    public function created_tasks()
+    {
+        return $this->hasMany(Task::class, 'created_by');
+    }
 }

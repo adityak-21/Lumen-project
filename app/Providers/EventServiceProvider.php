@@ -3,6 +3,8 @@
 namespace App\Providers;
 use App\Events\UserRegistered;
 use App\Listeners\SendRegisteredEmail;
+use App\Events\TaskRegistered;
+use App\Listeners\SendTaskAssignedEmail;
 
 use Laravel\Lumen\Providers\EventServiceProvider as ServiceProvider;
 
@@ -20,6 +22,10 @@ class EventServiceProvider extends ServiceProvider
 
         UserRegistered::class => [
             SendRegisteredEmail::class,
+        ],
+
+        TaskRegistered::class => [
+            SendTaskAssignedEmail::class,
         ],
     ];
 

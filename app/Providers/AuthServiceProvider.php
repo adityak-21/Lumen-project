@@ -2,9 +2,10 @@
 
 namespace App\Providers;
 
-use App\User;
+// use App\User;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
+use App\Models\User;
 
 class AuthServiceProvider extends ServiceProvider
 {
@@ -34,6 +35,10 @@ class AuthServiceProvider extends ServiceProvider
             if ($request->input('api_token')) {
                 return User::where('api_token', $request->input('api_token'))->first();
             }
+        });
+
+        Gate::define('is-Admin', function ($user) {
+            return $user->roles->contains('role', 'admin');
         });
     }
 }

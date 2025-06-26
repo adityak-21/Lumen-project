@@ -56,6 +56,16 @@ Route::group([
     Route::post('validate', 'AuthController@isValidUser');
     Route::post('isAdmin', 'AuthController@isAdmin');
 
+    Route::post('createTask', 'TaskController@createTask');
+    Route::post('updateTaskTitle/{taskId}', 'TaskController@updateTaskTitle');
+    Route::post('updateTaskDescription/{taskId}', 'TaskController@updateTaskDescription');
+    Route::post('updateTaskDueDate/{taskId}', 'TaskController@updateTaskDueDate');
+    Route::post('updateTaskStatus/{taskId}', 'TaskController@updateTaskStatus');
+    Route::post('deleteTask/{taskId}', 'TaskController@deleteTask');
+    Route::post('listMyTasks', 'TaskController@listMyTasks');
+    Route::post('listCreatedTasks', 'TaskController@listCreatedTasks');
+    Route::post('listAllTasks', 'TaskController@listAllTasks');
+
 });
 
 Route::group([
