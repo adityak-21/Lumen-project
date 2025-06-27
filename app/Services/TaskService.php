@@ -20,7 +20,7 @@ class TaskService
             'title' => $title,
             'description' => $data['description'] ?? null,
             'assignee_id' => $assignee_id,
-            'due_date' => isset($data['due_date']) ? Carbon::parse($data['due_date'])->toDateTimeString : null,
+            'due_date' => isset($data['due_date']) ? Carbon::parse($data['due_date'])->toDateTimeString() : null,
             'created_by' => $userId,
             'status' => 'assigned',
         ]);
@@ -134,7 +134,13 @@ class TaskService
             $query->where('status', 'like', $filters['status']);
         }
 
-        $query->orderBy('due_date', 'asc');
+        $sortableFields = ['title', 'due_date', 'status'];
+        if (!empty($filters['sort_by']) && in_array($filters['sort_by'], $sortableFields)) {
+            $sortDirection = !empty($filters['sort_order']) && in_array($filters['sort_order'], ['asc', 'desc']) ? $filters['sort_order'] : 'asc';
+            $query->orderBy($filters['sort_by'], $sortDirection);
+        } else {
+            $query->orderBy('due_date', 'asc');
+        }
 
         $totalCount = $query->count();
 
@@ -152,6 +158,7 @@ class TaskService
                 'created_by' => $activity->creator ? $activity->creator->name : null,
                 'created_at' => Carbon::parse($activity->created_at)->toDateTimeString(),
                 'updated_at' => Carbon::parse($activity->updated_at)->toDateTimeString(),
+                'total_count' => $totalCount,
             ];
         }
         
@@ -197,8 +204,14 @@ class TaskService
         if( !empty($filters['status'])) {
             $query->where('status', 'like', $filters['status']);
         }
-
-        $query->orderBy('due_date', 'asc');
+        
+        $sortableFields = ['title', 'due_date', 'status'];
+        if (!empty($filters['sort_by']) && in_array($filters['sort_by'], $sortableFields)) {
+            $sortDirection = !empty($filters['sort_order']) && in_array($filters['sort_order'], ['asc', 'desc']) ? $filters['sort_order'] : 'asc';
+            $query->orderBy($filters['sort_by'], $sortDirection);
+        } else {
+            $query->orderBy('due_date', 'asc');
+        }
 
         $totalCount = $query->count();
 
@@ -217,6 +230,7 @@ class TaskService
                 'created_by' => $activity->creator ? $activity->creator->name : null,
                 'created_at' => Carbon::parse($activity->created_at)->toDateTimeString(),
                 'updated_at' => Carbon::parse($activity->updated_at)->toDateTimeString(),
+                'total_count' => $totalCount,
             ];
         }
         
@@ -254,7 +268,14 @@ class TaskService
         if (!empty($filters['status'])) {
             $query->where('status', 'like', $filters['status']);
         }
-        $query->orderBy('due_date', 'asc');
+        
+        $sortableFields = ['title', 'due_date', 'status'];
+        if (!empty($filters['sort_by']) && in_array($filters['sort_by'], $sortableFields)) {
+            $sortDirection = !empty($filters['sort_order']) && in_array($filters['sort_order'], ['asc', 'desc']) ? $filters['sort_order'] : 'asc';
+            $query->orderBy($filters['sort_by'], $sortDirection);
+        } else {
+            $query->orderBy('due_date', 'asc');
+        }
 
         $totalCount = $query->count();
 
@@ -270,9 +291,10 @@ class TaskService
                 'my_id' => $activity->created_by,
                 'due_date' => $activity->due_date ? Carbon::parse($activity->due_date)->toDateTimeString(): null,
                 'status' => $activity->status,
-                'assignee' => $activity->assignee,
+                'assignee' => $activity->assignee->name,
                 'created_at' => Carbon::parse($activity->created_at)->toDateTimeString(),
                 'updated_at' => Carbon::parse($activity->updated_at)->toDateTimeString(),
+                'total_count' => $totalCount,
             ];
         }
         return $result;

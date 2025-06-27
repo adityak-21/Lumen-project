@@ -66,6 +66,8 @@ Route::group([
     Route::post('listCreatedTasks', 'TaskController@listCreatedTasks');
     Route::post('listAllTasks', 'TaskController@listAllTasks');
 
+    Route::post('myTaskStatusStatistics', 'AnalyticsController@myTaskStatusStatistics');
+
 });
 
 Route::group([

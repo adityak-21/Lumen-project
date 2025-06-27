@@ -224,7 +224,7 @@ class AuthController extends Controller
         if (!app('auth')->check()) {
             return response(['error' => 'Unauthenticated'], 401);
         }
-        return response(app('auth')->user());
+        return response(Auth::user()->load('roles'));
     }
     /**
      * Refresh the JWT token.

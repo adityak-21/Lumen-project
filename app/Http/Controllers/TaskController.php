@@ -166,6 +166,8 @@ class TaskController extends Controller
             'status' => 'string|in:assigned,in_progress,verified,completed|nullable',
             'pagenumber' => 'integer|min:1|nullable',
             'perpage' => 'integer|min:1|nullable',
+            'sort_by' => 'string|in:title,due_date,status|nullable',
+            'sort_order' => 'string|in:asc,desc|nullable',
         ]);
         $filters = [];
 
@@ -178,6 +180,8 @@ class TaskController extends Controller
         $perPage = $request->input('perpage', 10);
         $filters['from'] = isset($filters['from']) && $filters['from'] ? Carbon::parse($filters['from'])->toDateTimeString() : null;
         $filters['to'] = isset($filters['to']) && $filters['to'] ? Carbon::parse($filters['to'])->toDateTimeString() : null;
+        $filters['sort_by'] = $request->input('sort_by', 'due_date');
+        $filters['sort_order'] = $request->input('sort_order', 'asc');
 
         try {
             $tasks = $this->taskService->listMyTasks(Auth::user()->id, $filters, $pageNumber, $perPage);
@@ -204,6 +208,8 @@ class TaskController extends Controller
             'status' => 'string|in:assigned,in_progress,verified,completed|nullable',
             'pagenumber' => 'integer|min:1|nullable',
             'perpage' => 'integer|min:1|nullable',
+            'sort_by' => 'string|in:title,due_date,status|nullable',
+            'sort_order' => 'string|in:asc,desc|nullable',
         ]);
         $filters = [];
         $filters['title'] = $request->input('title');
@@ -215,6 +221,8 @@ class TaskController extends Controller
         $perPage = $request->input('perpage', 10);
         $filters['from'] = isset($filters['from']) && $filters['from'] ? Carbon::parse($filters['from'])->toDateTimeString() : null;
         $filters['to'] = isset($filters['to']) && $filters['to'] ? Carbon::parse($filters['to'])->toDateTimeString() : null;
+        $filters['sort_by'] = $request->input('sort_by', 'due_date');
+        $filters['sort_order'] = $request->input('sort_order', 'asc');
 
         try {
             $tasks = $this->taskService->listCreatedTasks(Auth::user()->id, $filters, $pageNumber, $perPage);
@@ -255,6 +263,9 @@ class TaskController extends Controller
         $perPage = $request->input('perpage', 10);
         $filters['from'] = isset($filters['from']) && $filters['from'] ? Carbon::parse($filters['from'])->toDateTimeString() : null;
         $filters['to'] = isset($filters['to']) && $filters['to'] ? Carbon::parse($filters['to'])->toDateTimeString() : null;
+        $filters['sort_by'] = $request->input('sort_by', 'due_date');
+        $filters['sort_order'] = $request->input('sort_order', 'asc');
+
         if(!Gate::allows('is-Admin')) {
             return response()->json([
                 'success' => false,
