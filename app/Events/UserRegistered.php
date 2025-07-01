@@ -8,7 +8,7 @@ use Illuminate\Queue\SerializesModels;
 class UserRegistered extends Event
 {
     use SerializesModels;
-    protected $user;
+    public $user;
 
     public function __construct(User $user)
     {

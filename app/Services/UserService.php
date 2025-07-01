@@ -162,7 +162,12 @@ class UserService
                         'id'   => $user->id,
                         'name' => $user->name,
                         'email' => $user->email,
-                        'role' => $role->role,
+                        'roles' => $user->roles->map(function($role) {
+                            return [
+                                'id' => $role->id,
+                                'name' => $role->role,
+                            ];
+                        })->values(),
                         'created_by' => $user->created_by,
                         'created_at' => Carbon::parse($user->created_at)->format('Y-m-d H:i:s'),
                         'updated_at' => Carbon::parse($user->updated_at)->format('Y-m-d H:i:s'),

@@ -67,6 +67,21 @@ Route::group([
     Route::post('listAllTasks', 'TaskController@listAllTasks');
 
     Route::post('myTaskStatusStatistics', 'AnalyticsController@myTaskStatusStatistics');
+    Route::post('averageCompletionTime', 'AnalyticsController@averageCompletionTime');
+    Route::post('assignedVsCreated', 'AnalyticsController@assignedVsCreated');
+    Route::post('oldestOpenTasks', 'AnalyticsController@oldestOpenTasks');
+
+    Route::post('sendMessage', 'NotificationsController@sendMessage');
+    Route::post('sendToUser', 'NotificationsController@sendToUser');
+
+    Route::post('users/{userId}/roles', 'UserRoleController@assignRoles');
+    Route::post('users/{userId}/roles/{roleId}', 'UserRoleController@removeRole');
+    // Route::post('broadcasting/auth', 'BroadcastAuthController@authenticate');
+
+    Route::post('roles', 'RoleController@index');
+
+    Route::post('listNotifications', 'NotificationsController@listNotifications');
+    Route::post('markAsRead/{notificationId}', 'NotificationsController@markAsRead');
 
 });
 
@@ -80,5 +95,10 @@ Route::group([
     Route::delete('{id}', 'RoleController@destroy');
 });
 
-$router->post('api/users/{userId}/roles', 'UserRoleController@assignRoles');
-$router->delete('api/users/{userId}/roles/{roleId}', 'UserRoleController@removeRole');
+// $router->post('api/users/{userId}/roles', 'UserRoleController@assignRoles');
+// $router->delete('api/users/{userId}/roles/{roleId}', 'UserRoleController@removeRole');
+
+$router->post('/broadcasting/auth', [
+    'middleware' => 'auth:api',
+    'uses' => 'BroadcastAuthController@authenticate'
+]);

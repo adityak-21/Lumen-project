@@ -9,7 +9,9 @@ class RoleController extends Controller
 {
     public function index()
     {
-        return response(Role::all());
+        return response([
+            'roles' => Role::all()
+        ]);
     }
 
     public function create(Request $request)

@@ -7,6 +7,10 @@ use App\Services\TaskService;
 use App\Events\TaskRegistered;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
+use App\Events\PrivateMessage;
+use App\Services\NotificationService;
+use App\Models\Notification;
+use App\Events\TaskRelatedMessages;
 
 use Carbon\Carbon;
 
@@ -14,9 +18,10 @@ class TaskController extends Controller
 {
 
     protected $taskService;
-    public function __construct(TaskService $taskService)
+    public function __construct(TaskService $taskService, NotificationService $notificationService)
     {
         $this->taskService = $taskService;
+        $this->notificationService = $notificationService;
     }
     public function createTask(Request $request)
     {
@@ -34,6 +39,18 @@ class TaskController extends Controller
             $task->save();
 
             event(new TaskRegistered($task));
+            $notif = $this->notificationService->createNotification(
+                $task->assignee_id,
+                'New Task Assigned',
+                'You have been assigned a new task: ' . $task->title
+            );
+            $notificationId = $notif->id;
+            event(new TaskRelatedMessages(
+                'New Task Assigned',
+                'You have been assigned a new task: ' . $task->title,
+                $task->assignee_id,
+                $notificationId
+            ));
             return response()->json([
                 'success' => true,
                 'message' => 'Task created successfully.',
@@ -57,7 +74,20 @@ class TaskController extends Controller
         ]);
 
         try {
+            $oldTitle = Task::findOrFail($taskId)->title;
             $task = $this->taskService->updateTaskTitle($taskId, $request->input('title'));
+            $notif = $this->notificationService->createNotification(
+                $task->assignee_id,
+                'Task Title Updated',
+                'Your task title has been updated from ' . $oldTitle . ' to: ' . $task->title
+            );
+            $notificationId = $notif->id;
+            event(new TaskRelatedMessages(
+                'Task Title Updated',
+                'Your task title has been updated from ' . $oldTitle . ' to: ' . $task->title,
+                $task->assignee_id,
+                $notificationId
+            ));
             return response()->json([
                 'success' => true,
                 'message' => 'Task title updated successfully.',
@@ -80,6 +110,18 @@ class TaskController extends Controller
 
         try {
             $task = $this->taskService->updateTaskDescription($taskId, $request->input('description'));
+            $notif = $this->notificationService->createNotification(
+                $task->assignee_id,
+                'Task Description Updated',
+                'Your task description for ' . $task->title . ' has been updated to: ' . $task->description
+            );
+            $notificationId = $notif->id;
+            event(new TaskRelatedMessages(
+                'Task Description Updated',
+                'Your task description for ' . $task->title . ' has been updated to: ' . $task->description,
+                $task->assignee_id,
+                $notificationId
+            ));
             return response()->json([
                 'success' => true,
                 'message' => 'Task description updated successfully.',
@@ -102,6 +144,18 @@ class TaskController extends Controller
 
         try {
             $task = $this->taskService->updateTaskDueDate($taskId, Carbon::parse($request->input('due_date'))->toDateTimeString());
+            $notif = $this->notificationService->createNotification(
+                $task->assignee_id,
+                'Task Due Date Updated',
+                'Your task Due Date for ' . $task->title . ' has been updated to: ' . $task->due_date
+            );
+            $notificationId = $notif->id;
+            event(new TaskRelatedMessages(
+                'Task Due Date Updated',
+                'Your task Due Date for ' . $task->title . ' has been updated to: ' . $task->due_date,
+                $task->assignee_id,
+                $notificationId
+            ));
             return response()->json([
                 'success' => true,
                 'message' => 'Task due date updated successfully.',
@@ -124,6 +178,18 @@ class TaskController extends Controller
 
         try {
             $task = $this->taskService->updateTaskStatus($taskId, $request->input('status'));
+            $notif = $this->notificationService->createNotification(
+                $task->assignee_id,
+                'Task Status Updated',
+                'Your task Status for ' . $task->title . ' has been updated to: ' . $task->status
+            );
+            $notificationId = $notif->id;
+            event(new TaskRelatedMessages(
+                'Task Status Updated',
+                'Your task Status for ' . $task->title . ' has been updated to: ' . $task->status,
+                $task->assignee_id,
+                $notificationId
+            ));
             return response()->json([
                 'success' => true,
                 'message' => 'Task status updated successfully.',

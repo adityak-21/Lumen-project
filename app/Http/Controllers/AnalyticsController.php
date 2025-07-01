@@ -48,4 +48,34 @@ class AnalyticsController extends Controller
         }
 
     }
+
+    public function averageCompletionTime()
+    {
+        try {
+            $userId = Auth::user()->id;
+            $averageTime = $this->analyticsService->getAverageCompletionTime($userId);
+            return response(['average_completion_time' => $averageTime]);
+        }
+        catch (\Exception $e) {
+            return response(['error' => 'Failed to retrieve average completion time.'], 500);
+        }
+    }
+
+    public function assignedVsCreated()
+    {
+        try{
+            $userId = Auth::user()->id;
+            return response($this->analyticsService->getAssignedVsCreated($userId));
+        }
+        catch (\Exception $e) {
+            return response(['error' => 'Failed to retrieve assigned vs created tasks.'], 500);
+        }
+    }
+
+    public function oldestOpenTasks()
+    {
+        $userId = Auth::user()->id;
+        return response($this->analyticsService->getOldestOpenTasks($userId));
+    }
+
 }

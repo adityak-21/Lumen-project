@@ -8,7 +8,7 @@ class TaskRegistered extends Event
 {
     use SerializesModels;
 
-    protected $task;
+    public $task;
 
     public function __construct(Task $task)
     {
