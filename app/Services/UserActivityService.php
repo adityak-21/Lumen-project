@@ -41,7 +41,7 @@ class UserActivityService
 
         if (!empty($filters['name'])) {
             $query->whereHas('users', function ($q) use ($filters) {
-                $q->where('name', 'like', $filters['name']);
+                $q->where('name', 'like', $filters['name'] . '%');
             });
             $query->with(['users' => function ($q) use ($filters) {
                 $q->where('name', 'like', $filters['name'] . '%');
