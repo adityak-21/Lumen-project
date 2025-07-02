@@ -15,6 +15,7 @@ RUN apk add --no-cache \
     openssl-dev \
     bash \
     git \
+    supervisor \
     && docker-php-ext-configure zip \
     && docker-php-ext-install pdo pdo_mysql zip gd xml mbstring
 
@@ -31,6 +32,8 @@ RUN chown -R www-data:www-data /var/www/storage /var/www/bootstrap/cache || true
 RUN chown -R www-data:www-data /var/www \
     && chmod -R 755 /var/www
 
+COPY supervisord.conf /etc/supervisord.conf
+
 EXPOSE 9000
 
-CMD ["php", "-S", "0.0.0.0:9000", "-t", "/var/www/public"]
+CMD ["/usr/bin/supervisord", "-c", "/etc/supervisord.conf"]
