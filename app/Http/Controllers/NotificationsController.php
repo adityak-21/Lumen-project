@@ -66,7 +66,7 @@ class NotificationsController extends Controller
         }
 
         $notifications = User::with(['notifications' => function ($query) {
-            $query->where('created_at', '>=', Carbon::now()->subDays(2));
+            $query->where('created_at', '>=', Carbon::now()->subDays(3));
             $query->orderBy('created_at', 'desc');
         }])->find($user->id)->notifications;
 

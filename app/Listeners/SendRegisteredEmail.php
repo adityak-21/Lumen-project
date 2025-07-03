@@ -20,7 +20,8 @@ class SendRegisteredEmail implements ShouldQueue
     public function handle(UserRegistered $event)
     {
         $user = $event->user;
-        $confirmationUrl = url("/api/confirm/{$user->confirmation_token}");
+        $confirmationUrl = env('FRONTEND_URL', 'http://localhost:3000') . "/confirmEmail/{$user->confirmation_token}";
+        // $confirmationUrl = url("/api/confirm/{$user->confirmation_token}");
         $data = [
             'name' => $user->name,
             'confirmationUrl' => $confirmationUrl,

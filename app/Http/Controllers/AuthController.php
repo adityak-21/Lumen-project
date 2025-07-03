@@ -76,7 +76,7 @@ class AuthController extends Controller
         // $user->created_by = app('auth')->user()->id ?? null;
         $user->save();
         $roleService->assignUserRoles($user->id, ['1']);
-        return response(['message' => 'Email confirmed! You can now login.']);
+        return response(['message' => 'Email confirmed! You can now login.'], 200);
     }
 
     public function forgotPassword(Request $request)
@@ -94,7 +94,9 @@ class AuthController extends Controller
             $resetToken = Str::random(32);
             $user->confirmation_token = $resetToken;
             $user->save();
-            $resetUrl = url("/api/resetpwd/{$resetToken}");
+            $frontendUrl = env('FRONTEND_URL', 'http://localhost:3000');
+            $resetUrl = "{$frontendUrl}/resetpwd/{$resetToken}";
+            // $resetUrl = url("/api/resetpwd/{$resetToken}");
             $data = [
                 'name' => $user->name,
                 'resetUrl' => $resetUrl,

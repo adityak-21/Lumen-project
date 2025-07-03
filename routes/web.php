@@ -24,7 +24,7 @@ $router->get('/version', function () use ($router) {
     return $router->app->version();
 });
 
-$router->get('/api/confirm/{token}', 'AuthController@confirmEmail');
+// $router->get('/api/confirm/{token}', 'AuthController@confirmEmail');
 
 Route::group([
 
@@ -36,6 +36,7 @@ Route::group([
     Route::post('refresh', 'AuthController@refresh');
     Route::post('resetpwd/{token}', 'AuthController@resetPassword');
     Route::post('forgotpwd', 'AuthController@forgotPassword');
+    Route::post('confirm-email/{token}', 'AuthController@confirmEmail');
 
 });
 
