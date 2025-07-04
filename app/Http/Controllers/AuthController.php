@@ -14,6 +14,7 @@ use UserActivityController;
 use Carbon\Carbon;
 use App\Events\UserRegistered; 
 use App\Models\Role;
+use Illuminate\Validation\ValidationException;
 
 class AuthController extends Controller
 {
@@ -49,11 +50,11 @@ class AuthController extends Controller
             $user = $this->userService->createUser($request->only(['name', 'email', 'password']));
             event(new UserRegistered($user));
 
-            $user->created_by = app('auth')->user()->id ?? null;
+            $user->created_by = Auth::user()->id ?? null;
             $user->save();
 
             return response(['message' => 'Registration successful. Check your email to confirm.'], 201);
-        } catch (\Illuminate\Validation\ValidationException $e) {
+        } catch (ValidationException $e) {
             return response([
                 'success' => 'False',
                 'message' => 'Validation error. Please check the input fields.',
@@ -106,7 +107,7 @@ class AuthController extends Controller
                                         'Reset your password', 'no-reply@example.com', 'App Name');
 
             return response(['message' => 'Password reset link sent to your email.'], 200);
-        } catch (\Illuminate\Validation\ValidationException $e) {
+        } catch (ValidationException $e) {
             return response([
                 'success' => 'False',
                 'message' => 'Validation error. Please check the input fields.',
@@ -132,7 +133,7 @@ class AuthController extends Controller
             $user->save();
 
             return response(['message' => 'Password has been reset successfully.'], 200);
-        } catch (\Illuminate\Validation\ValidationException $e) {
+        } catch (ValidationException $e) {
             return response([
                 'success' => 'False',
                 'message' => 'Validation error. Please check the input fields.',

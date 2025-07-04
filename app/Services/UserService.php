@@ -46,7 +46,7 @@ class UserService
         try {
             $userToDelete = User::findOrFail($id);
 
-            if (!($authUser->roles->contains('role', 'admin'))) {
+            if (!(Gate::allows('is-Admin', $authUser))) {
                 $result['status'] = 'failed';
                 $result['message'] = 'No permission';
                 return $result;
@@ -85,7 +85,7 @@ class UserService
             }
             DB::commit();
             return $result = ['status' => 'success', 'message' => $deleteResult['message'], 'error' => null];
-        } catch (\Illuminate\Validation\ValidationException $e) {
+        } catch (ValidationException $e) {
             DB::rollBack();
             $result=[];
             $result = [

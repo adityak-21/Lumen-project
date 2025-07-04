@@ -25,6 +25,7 @@ class TaskService
             'created_by' => $userId,
             'status' => 'assigned',
         ]);
+        $task->save();
         return $task;
     }
 

@@ -36,7 +36,6 @@ class TaskController extends Controller
         $data['due_date'] = isset($data['due_date']) && $data['due_date'] ? Carbon::parse($data['due_date'])->toDateTimeString() : null;
         try {
             $task = $this->taskService->createTask($data['title'], $data['assignee_id'], Auth::user()->id, $data);
-            $task->save();
 
             event(new TaskRegistered($task));
             $notif = $this->notificationService->createNotification(

@@ -23,8 +23,10 @@ class Kernel extends ConsoleKernel
      * @param  \Illuminate\Console\Scheduling\Schedule  $schedule
      * @return void
      */
+
     protected function schedule(Schedule $schedule)
     {
-        $schedule->command('sendMail:pending-tasks')->timezone('Asia/Kolkata')->at('11:10');
+        $mailTime = env('PENDING_TASKS_MAIL_TIME', '16:05');
+        $schedule->command('sendMail:pending-tasks')->timezone('Asia/Kolkata')->at($mailTime);
     }
 }

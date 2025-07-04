@@ -38,26 +38,32 @@ class User extends Model implements AuthenticatableContract, AuthorizableContrac
     {
         return $this->getKey();
     }
+
     public function getJWTCustomClaims()
     {
         return [];
     }
+
     public function roles()
     {
         return $this->belongsToMany(Role::class, 'role_user', 'user_id', 'role_id');
     }
+
     public function activityLogs()
     {
         return $this->hasMany(ActivityLog::class, 'user_id');
     }
+
     public function assigned_tasks()
     {
         return $this->hasMany(Task::class, 'assignee_id');
     }
+
     public function created_tasks()
     {
         return $this->hasMany(Task::class, 'created_by');
     }
+    
     public function notifications()
     {
         return $this->hasMany(Notification::class, 'user_id');

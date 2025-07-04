@@ -26,7 +26,7 @@ class UserRoleController extends Controller
         ]);
         try {
             $authUser = Auth::user();
-            if (!$authUser->roles->contains('role', 'admin')) {
+            if (!Gate::allows('is-Admin', $authUser)) {
                 return response(['error' => 'No permission'], 403);
             }
             $user = User::findOrFail($userId);
@@ -47,7 +47,7 @@ class UserRoleController extends Controller
             'roleId' => $roleId
         ]);
         $authUser = Auth::user();
-        if (!$authUser->roles->contains('role', 'admin')) {
+        if (!Gate::allows('is-Admin', $authUser)) {
             return response(['error' => 'No permission'], 403);
         }
         $user = User::findOrFail($userId);

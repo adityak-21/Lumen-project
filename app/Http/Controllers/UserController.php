@@ -11,6 +11,8 @@ use App\Models\User;
 use UserActivityController;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
+use Illuminate\Support\Facades\Gate;
 
 class UserController extends Controller
 {
@@ -34,7 +36,7 @@ class UserController extends Controller
                 $userId = $authuser->id;
             }
             else {
-                if (!$authuser->roles->contains('role', 'admin')) {
+                if (!Gate::allows('is-Admin', $authuser)) {
                     return response(['error' => 'No permission'], 403);
                 }
             }
@@ -42,7 +44,7 @@ class UserController extends Controller
             $result = $this->userService->updateUserName($userId, $request->input('name'));
             if($result['status'] == 'success')
                 return response($result['message'], 200);
-        } catch (\Illuminate\Validation\ValidationException $e) {
+        } catch (ValidationException $e) {
             return response([
                 'success' => 'False',
                 'message' => 'Validation error. Please check the input fields.',
@@ -78,7 +80,7 @@ class UserController extends Controller
             $result = $this->userService->performBulkDeleteUsers($userIds, $user);
             if(!$result['error']) return response($result, 200);
             return response($result, 400);
-        } catch (\Illuminate\Validation\ValidationException $e) {
+        } catch (ValidationException $e) {
             return response([
                 'success' => 'False',
                 'message' => 'Validation error. Please check the input fields.',
@@ -141,7 +143,7 @@ class UserController extends Controller
 
             $users = $this->userActivityService->listUserActivities($filters, $pageNumber, $perPage);
             return response($users);
-        } catch (\Illuminate\Validation\ValidationException $e) {
+        } catch (ValidationException $e) {
             return response([
                 'success' => 'False',
                 'message' => 'Validation error. Please check the input fields.',

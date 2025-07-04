@@ -13,10 +13,12 @@ class Task extends Model
         'due_date',
         'deleted_at',
     ];
+
     public function assignee()
     {
         return $this->belongsTo(User::class, 'assignee_id');
     }
+    
     public function creator()
     {
         return $this->belongsTo(User::class, 'created_by');

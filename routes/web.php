@@ -11,20 +11,10 @@
 |
 */
 
-$router->get('/', function () use ($router) {
-    // return $router->app->version();
-    echo "Hi everyone!";
-});
-
-$router->get('/db-test', function() {
-    return app('db')->select("SELECT 1 as Test");
-});
-
 $router->get('/version', function () use ($router) {
     return $router->app->version();
 });
 
-// $router->get('/api/confirm/{token}', 'AuthController@confirmEmail');
 
 Route::group([
 
@@ -77,7 +67,6 @@ Route::group([
 
     Route::post('users/{userId}/roles', 'UserRoleController@assignRoles');
     Route::post('users/{userId}/roles/{roleId}', 'UserRoleController@removeRole');
-    // Route::post('broadcasting/auth', 'BroadcastAuthController@authenticate');
 
     Route::post('roles', 'RoleController@index');
 
@@ -96,8 +85,6 @@ Route::group([
     Route::delete('{id}', 'RoleController@destroy');
 });
 
-// $router->post('api/users/{userId}/roles', 'UserRoleController@assignRoles');
-// $router->delete('api/users/{userId}/roles/{roleId}', 'UserRoleController@removeRole');
 
 $router->post('/broadcasting/auth', [
     'middleware' => 'auth:api',

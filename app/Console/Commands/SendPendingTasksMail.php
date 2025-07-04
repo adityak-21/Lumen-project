@@ -51,20 +51,29 @@ class SendPendingTasksMail extends Command implements ShouldQueue
      */
     public function handle()
     {
-        $users = User::all();
+        $pendingUserIds = Task::where('due_date', '<', Carbon::today())
+            ->whereNotIn('status', ['completed', 'verified'])
+            ->whereNotNull('assignee_id')
+            ->distinct()
+            ->pluck('assignee_id');
+
+        if ($pendingUserIds->isEmpty()) {
+            $this->info('No users with pending tasks.');
+            return 0;
+        }
+
+        $users = User::whereIn('id', $pendingUserIds)
+            ->with(['assigned_tasks' => function ($query) {
+                $query->where('due_date', '<', Carbon::today())
+                    ->whereNotIn('status', ['completed', 'verified']);
+            }])
+            ->get();
 
         foreach ($users as $user) {
-            $userId = $user->id;
-            $tasks = Task::where('due_date', '<', Carbon::today())
-                        ->where('status', '!=', 'completed')
-                        ->where('status', '!=', 'verified')
-                        ->where('assignee_id', $userId)
-                        ->get();
-            
-
-            if ($tasks->count() > 0) {
+            $tasks = $user->assigned_tasks;
+            if ($tasks->isNotEmpty()) {
                 $data = [
-                    'user' => $user,
+                    'user'  => $user,
                     'tasks' => $tasks,
                 ];
 
@@ -81,5 +90,6 @@ class SendPendingTasksMail extends Command implements ShouldQueue
         }
 
         $this->info('Pending tasks notification emails sent.');
+
     }
 }

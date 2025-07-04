@@ -65,10 +65,10 @@ class NotificationsController extends Controller
             return response(['error' => 'Unauthorized'], 401);
         }
 
-        $notifications = User::with(['notifications' => function ($query) {
-            $query->where('created_at', '>=', Carbon::now()->subDays(3));
-            $query->orderBy('created_at', 'desc');
-        }])->find($user->id)->notifications;
+        $notifications = $user->notifications()
+            ->where('created_at', '>=', Carbon::now()->subDays(4))
+            ->orderBy('created_at', 'desc')
+            ->get();
 
         return response($notifications);
     }
