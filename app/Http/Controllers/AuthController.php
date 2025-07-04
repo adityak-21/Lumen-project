@@ -236,7 +236,7 @@ class AuthController extends Controller
 
     public function isAdmin()
     {
-        $roleId = 2;
+        $roleId = env('ADMIN_ROLE_ID', 2);
         $role = Role::findOrFail($roleId);
         $user = app('auth')->user();
         if($user->roles->contains($roleId))

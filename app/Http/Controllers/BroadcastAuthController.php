@@ -12,7 +12,7 @@ class BroadcastAuthController extends Controller
     {
         
         if (Auth::check()) {
-            \Log::info('Broadcast auth lol', [
+            \Log::info('Broadcast auth', [
         'user' => Auth::user(),
         'request' => $request->all()
     ]);
