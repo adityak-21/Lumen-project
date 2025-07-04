@@ -225,21 +225,3 @@ All endpoints are POST unless otherwise specified.
 ## Testing
 
 You can use tools like Postman or curl to test API endpoints.
-
----
-
-## Contributing
-
-Pull requests are welcome! For major changes, please open an issue first to discuss what you would like to change.
-
----
-
-## License
-
-[MIT](LICENSE)
-
----
-
-## Credits
-
-Built with [Lumen](https://lumen.laravel.com/) by Aditya Khandelwal.
