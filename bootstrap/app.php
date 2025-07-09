@@ -47,6 +47,10 @@ $app->singleton(
     App\Console\Kernel::class
 );
 
+$app->singleton(App\Services\RecaptchaService::class, function ($app) {
+    return new App\Services\RecaptchaService(new \GuzzleHttp\Client());
+});
+
 /*
 |--------------------------------------------------------------------------
 | Register Config Files
@@ -119,6 +123,7 @@ $app->register(Flipbox\LumenGenerator\LumenGeneratorServiceProvider::class);
 if (file_exists($channels = __DIR__.'/../routes/channels.php')) {
     require $channels;
 }
+
 
 /*
 |--------------------------------------------------------------------------

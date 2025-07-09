@@ -56,6 +56,7 @@ Route::group([
     Route::post('listMyTasks', 'TaskController@listMyTasks');
     Route::post('listCreatedTasks', 'TaskController@listCreatedTasks');
     Route::post('listAllTasks', 'TaskController@listAllTasks');
+    Route::post('getTodayTasks', 'TaskController@getTodayTasks');
 
     Route::post('myTaskStatusStatistics', 'AnalyticsController@myTaskStatusStatistics');
     Route::post('averageCompletionTime', 'AnalyticsController@averageCompletionTime');
@@ -67,11 +68,14 @@ Route::group([
 
     Route::post('users/{userId}/roles', 'UserRoleController@assignRoles');
     Route::post('users/{userId}/roles/{roleId}', 'UserRoleController@removeRole');
+    Route::post('users/{userId}/changeRoles', 'UserRoleController@changeRoles');
 
     Route::post('roles', 'RoleController@index');
 
     Route::post('listNotifications', 'NotificationsController@listNotifications');
     Route::post('markAsRead/{notificationId}', 'NotificationsController@markAsRead');
+    Route::post('getRecent', 'NotificationsController@getRecent');
+    Route::post('getRecentActivities', 'UserController@getRecentActivities');
 
 });
 

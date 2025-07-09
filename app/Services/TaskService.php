@@ -301,4 +301,15 @@ class TaskService
         }
         return $result;
     }
+
+    public function getTodayTasks($userId = null)
+    {
+        $query = Task::whereDate('due_date', Carbon::today());
+
+        if ($userId) {
+            $query->where('assignee_id', $userId);
+        }
+
+        return $query->get();
+    }
 }

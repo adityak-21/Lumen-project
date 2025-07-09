@@ -350,5 +350,22 @@ class TaskController extends Controller
                 'error' => $e->getMessage(),
             ], 500);
         }
-    }    
+    }
+    
+    public function getTodayTasks()
+    {
+        try {
+            $tasks = $this->taskService->getTodayTasks(Auth::user()->id);
+            return response([
+                'success' => true,
+                'tasks' => $tasks,
+            ], 200);
+        } catch (\Exception $e) {
+            return response([
+                'success' => false,
+                'message' => 'Failed to retrieve today\'s tasks.',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
 }

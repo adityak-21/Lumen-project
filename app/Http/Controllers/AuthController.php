@@ -15,6 +15,7 @@ use Carbon\Carbon;
 use App\Events\UserRegistered; 
 use App\Models\Role;
 use Illuminate\Validation\ValidationException;
+use App\Services\RecaptchaService;
 
 class AuthController extends Controller
 {
@@ -171,13 +172,17 @@ class AuthController extends Controller
      * @param Request $request
      * @return \Illuminate\Http\JsonResponse
      */
-    public function login(Request $request)
+    public function login(Request $request, RecaptchaService $recaptchaService)
     {
         try{
             $this->validate($request, [
                 'email' => 'required|string|email|max:255',
                 'password' => 'required|string|min:6',
+                'recaptchaToken' => 'required'
             ]);
+            if (!$recaptchaService->verifyCaptcha($request->input('recaptchaToken'))) {
+                return response(['message' => 'reCAPTCHA failed'], 422);
+            }
             $credentials = $request->only(['email', 'password']);
 
             $verification = $this->userService->verifyUser($credentials);

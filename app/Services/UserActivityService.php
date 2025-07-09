@@ -77,4 +77,12 @@ class UserActivityService
         
         return $result;
     }
+
+    public function getRecentActivities($userId, $limit = 5)
+    {
+        return ActivityLog::where('user_id', $userId)
+            ->orderBy('login_time', 'desc')
+            ->take($limit)
+            ->get(['id', 'login_time', 'logout_time', 'duration']);
+    }
 }

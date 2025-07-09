@@ -155,5 +155,23 @@ class UserController extends Controller
                 'error' => $e->getMessage()], 500);
         }
     }
+
+    public function getRecentActivities(Request $request)
+    {
+        $this->validate($request, [
+            'user_id' => 'required|integer|exists:users,id',
+        ]);
+        $userId = $request->input('user_id');
+        $user = User::findOrFail($userId);
+        if (!$user) {
+            return response(['error' => 'Unauthorized'], 401);
+        }
+        if (!Gate::allows('is-Admin', Auth::user())) {
+            return response(['error' => 'No permission'], 403);
+        }
+        $activities = $this->userActivityService->getRecentActivities($userId);
+
+        return response($activities);
+    }
     
 }

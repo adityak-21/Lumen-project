@@ -66,7 +66,7 @@ class NotificationsController extends Controller
         }
 
         $notifications = $user->notifications()
-            ->where('created_at', '>=', Carbon::now()->subDays(4))
+            ->where('created_at', '>=', Carbon::now()->subDays(7))
             ->orderBy('created_at', 'desc')
             ->get();
 
@@ -91,5 +91,24 @@ class NotificationsController extends Controller
         $notification->save();
 
         return response(['status' => 'Notification marked as read']);
+    }
+
+    public function getRecent()
+    {
+        $user = Auth::user();
+        $user_id = $user->id;
+        $activities = Notification::where('user_id', $user_id)
+            ->orderBy('created_at', 'desc')
+            ->limit(5)
+            ->get(['id', 'title', 'description', 'created_at']);
+
+        $formatted = $activities->map(function ($a) {
+            return [
+                'id'       => $a->id,
+                'activity' => $a->title . ': ' . $a->description,
+                'time'     => $a->created_at->toIso8601String(),
+            ];
+        });
+        return response($formatted);
     }
 }
