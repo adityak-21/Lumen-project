@@ -42,6 +42,7 @@ Route::group([
     Route::post('softdelete/{id}', 'UserController@softDeleteUser');
     Route::post('bulkdelete', 'UserController@bulksoftDeleteUsers');
     Route::post('update-name/{userId}', 'UserController@updateName');
+    Route::post('update-name', 'UserController@updateName');
     Route::post('listUsers', 'UserController@listUser');
     Route::post('listActivities', 'UserController@listUserActivity');
     Route::post('validate', 'AuthController@isValidUser');

@@ -178,12 +178,17 @@ class AuthController extends Controller
             $this->validate($request, [
                 'email' => 'required|string|email|max:255',
                 'password' => 'required|string|min:6',
-                'recaptchaToken' => 'required'
+                'recaptchaToken' => 'required',
+                'rememberMe' => 'boolean|nullable',
             ]);
             if (!$recaptchaService->verifyCaptcha($request->input('recaptchaToken'))) {
                 return response(['message' => 'reCAPTCHA failed'], 422);
             }
             $credentials = $request->only(['email', 'password']);
+
+            $remember = $request->input('rememberMe', false);
+            $ttl = $remember ? 60 * 24 * 30 : config('jwt.ttl', 60);
+            Auth::factory()->setTTL($ttl);
 
             $verification = $this->userService->verifyUser($credentials);
 
